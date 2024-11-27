@@ -12,48 +12,47 @@ const ProjectGallery = () => {
   const { t } = useTranslation();
   const shouldReduceMotion = useReducedMotion();
   const { showMoreProjects, toggleMoreProjects } = useGlobalContext();
+
+  // Get the starting point for additional projects based on the constant
+  const startingIndex = CONSTANTS.FEATURED_PROJECT_CUTOFF;
+  const additionalProjects = projectData.slice(startingIndex);
+
+  // Return early if no additional projects
+  if (!showMoreProjects) return null;
+
+  const getProjectDescription = (index) => {
+    // Generate description key dynamically
+    return t(`projects.${index + startingIndex}.description`);
+  };
+
   return (
-    <>
-      <AnimatePresence>
-        {showMoreProjects && (
-          <>
-            <StyledProjectGallery
-              key={crypto.randomUUID()}
-              initial={shouldReduceMotion ? 'noMotion' : 'hidden'}
-              animate='visible'
-              variants={parentProjectVariants}
-              exit='exit'
-            >
-              {projectData
-                .slice(CONSTANTS.FEATURED_PROJECT_CUTOFF)
-                .map((project, index) => {
-                  return (
-                    <GalleryItem
-                      key={project.id}
-                      project={project}
-                      // Mapping over these translated descriptions the same as in the Projects section, but this time add the cutoff (4) to the index, so that the mapping for the additional projects begins at the 5th project in the list.
-                      description={t(
-                        `projects.${
-                          index + CONSTANTS.FEATURED_PROJECT_CUTOFF
-                        }.description`
-                      )}
-                    />
-                  );
-                })}
-              <StyledProjectButton
-                variants={buttonVariant}
-                initial={shouldReduceMotion ? 'noMotion' : 'hidden'}
-                animate='visible'
-                exit={shouldReduceMotion ? 'noMotion' : 'exit'}
-                onClick={() => toggleMoreProjects()}
-              >
-                {t('show-less-btn')}
-              </StyledProjectButton>
-            </StyledProjectGallery>
-          </>
-        )}
-      </AnimatePresence>
-    </>
+    <AnimatePresence>
+      <StyledProjectGallery
+        key={crypto.randomUUID()} // You may want to avoid using randomUUID here in production as it can cause unnecessary re-renders.
+        initial={shouldReduceMotion ? 'noMotion' : 'hidden'}
+        animate="visible"
+        variants={parentProjectVariants}
+        exit="exit"
+      >
+        {additionalProjects.map((project, index) => (
+          <GalleryItem
+            key={project.id}
+            project={project}
+            description={getProjectDescription(index)}
+          />
+        ))}
+        
+        <StyledProjectButton
+          variants={buttonVariant}
+          initial={shouldReduceMotion ? 'noMotion' : 'hidden'}
+          animate="visible"
+          exit={shouldReduceMotion ? 'noMotion' : 'exit'}
+          onClick={toggleMoreProjects}
+        >
+          {t('show-less-btn')}
+        </StyledProjectButton>
+      </StyledProjectGallery>
+    </AnimatePresence>
   );
 };
 
