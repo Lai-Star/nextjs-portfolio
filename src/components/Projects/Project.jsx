@@ -8,12 +8,11 @@ import {
   StyledProjectContentBorder,
 } from '../../styles/Projects/ProjectContent/StyledProjectContent';
 import { StyledProjectDescriptionContainer } from '../../styles/Projects/ProjectContent/StyledProjectDescriptionContainer';
+
 import GithubSVG from '/src/assets/icons/github.svg';
 import ExternalLinkSVG from '/src/assets/icons/external-link.svg';
-import {
-  projectSlideLeftVariants,
-  projectSlideRightVariants,
-} from '../../utils/animations';
+
+import { projectSlideLeftVariants, projectSlideRightVariants } from '../../utils/animations';
 import { useReducedMotion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useGlobalContext } from '../../Context/Context';
@@ -22,55 +21,49 @@ const Project = ({ project, description, alternate }) => {
   const { t } = useTranslation();
   const { theme } = useGlobalContext();
   const shouldReduceMotion = useReducedMotion();
+
+  // Determine the appropriate animation variant
+  const animationVariant = alternate ? projectSlideRightVariants : projectSlideLeftVariants;
+
   return (
     <StyledProjectItem
       initial={shouldReduceMotion ? 'noMotion' : 'hidden'}
-      whileInView='visible'
-      // 'amount' = when about half the component is visible animate
-      viewport={{ once: true, amount: 0.4 }}
-      variants={
-        !alternate ? projectSlideLeftVariants : projectSlideRightVariants
-      }
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.4 }} // Animate when about 40% of the component is visible
+      variants={animationVariant}
       alternate={alternate}
     >
       <StyledProjectImage pageTheme={theme} alternate={alternate}>
         <StyledProjectImageContainer>
           <picture>
-            <source
-              srcSet={project.imageUrl}
-              type='image/webp'
-              media='(min-width: 768px)'
-            />
-            <source
-              srcSet={project.mobileUrl}
-              type='image/webp'
-              media='(max-width: 768px)'
-            />
+            <source srcSet={project.imageUrl} type="image/webp" media="(min-width: 768px)" />
+            <source srcSet={project.mobileUrl} type="image/webp" media="(max-width: 768px)" />
             <img src={project.imageUrl} alt={project.description} />
           </picture>
         </StyledProjectImageContainer>
       </StyledProjectImage>
+
       <StyledProjectContent alternate={alternate}>
         <StyledProjectContentBorder alternate={alternate}>
           <span>{t('featured-tag')}</span>
           <h3>{project.title}</h3>
           <StyledProjectDescriptionContainer>
-            {/* <p>{project.description}</p> */}
             <p>{description}</p>
           </StyledProjectDescriptionContainer>
           <ul>
-            {project.technologies.map(tech => {
-              return <li key={tech}>{tech}</li>;
-            })}
+            {project.technologies.map((tech) => (
+              <li key={tech}>{tech}</li>
+            ))}
           </ul>
           <div>
             <ul>
+              {/* Uncomment this block if you want to include the GitHub link */}
               {/* <li>
                 <a
                   href={project.repository}
-                  aria-label='Github'
-                  target='_blank'
-                  rel='noreferrer noopener'
+                  aria-label="Github"
+                  target="_blank"
+                  rel="noreferrer noopener"
                 >
                   <GithubSVG />
                 </a>
@@ -78,9 +71,9 @@ const Project = ({ project, description, alternate }) => {
               <li>
                 <a
                   href={project.livelink}
-                  aria-label='Live website'
-                  target='_blank'
-                  rel='noreferrer noopener'
+                  aria-label="Live website"
+                  target="_blank"
+                  rel="noreferrer noopener"
                 >
                   <ExternalLinkSVG />
                 </a>

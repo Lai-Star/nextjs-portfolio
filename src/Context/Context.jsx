@@ -1,89 +1,59 @@
-import { useContext } from 'react';
-import { useEffect } from 'react';
-import { useState } from 'react';
-import { createContext } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { CONSTANTS } from '../constants';
 import { useTranslation } from 'react-i18next';
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
+  const { t } = useTranslation();
   const [showMoreProjects, setShowMoreProjects] = useState(false);
   const [atBottom, setAtBottom] = useState(false);
-  const [theme, setUserTheme] = useState(() => {
+
+  // Load initial theme from localStorage or system preference
+  const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem('userTheme');
-    if (savedTheme) {
-      try {
-        const initialValue = JSON.parse(savedTheme);
-        return initialValue;
-      } catch (error) {
-        return '';
-      }
-    } else {
-      return '';
-    }
+    return savedTheme ? JSON.parse(savedTheme) : getSystemTheme();
   });
+
+  // Helper function to determine system theme
+  function getSystemTheme() {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  // Toggle the 'showMoreProjects' state
   const toggleMoreProjects = () => {
-    setShowMoreProjects(!showMoreProjects);
+    setShowMoreProjects((prev) => !prev);
   };
-  const { t } = useTranslation();
 
-  // For handling whether the user has scrolled to bottom of page - changes sidebar color
+  // Scroll handler to detect when at the bottom of the page
   const handleScroll = () => {
-    const pageBottom =
+    const isPageBottom =
       Math.ceil(window.innerHeight + window.scrollY) >=
-      document.documentElement.scrollHeight -
-        CONSTANTS.SPACE_BEFORE_PAGE_BOTTOM;
-    if (pageBottom) {
-      setAtBottom(true);
-    } else {
-      setAtBottom(false);
-    }
+      document.documentElement.scrollHeight - CONSTANTS.SPACE_BEFORE_PAGE_BOTTOM;
+    setAtBottom(isPageBottom);
   };
 
-  useEffect(() => {
-    window.addEventListener('scroll', handleScroll, {
-      passive: true,
-    });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
-  // Changes the document title based on the language selected
+  // Update document title based on the selected language
   useEffect(() => {
     document.title = t('app-title');
   }, [t]);
 
-  // Light/Dark theme toggler
-  const toggleTheme = () => {
-    theme === 'dark'
-      ? setUserTheme(prevTheme => (prevTheme = 'light'))
-      : setUserTheme(prevTheme => (prevTheme = 'dark'));
-  };
+  // Scroll event listener
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-  // Sets theme upon loading the page
+  // Save theme to localStorage and apply it to the body
   useEffect(() => {
     localStorage.setItem('userTheme', JSON.stringify(theme));
+    document.body.setAttribute('data-theme', theme); // Optional: Add a data attribute for CSS handling
   }, [theme]);
 
-  // Check user preference for dark mode
-  useEffect(() => {
-    const prefersDarkMode = window.matchMedia(
-      '(prefers-color-scheme: dark)'
-    ).matches;
-    if (prefersDarkMode) {
-      setUserTheme('dark');
-    }
-  }, []);
-  useEffect(() => {
-    const prefersLightMode = window.matchMedia(
-      '(prefers-color-scheme: light)'
-    ).matches;
-    if (prefersLightMode) {
-      setUserTheme('light');
-    }
-  }, []);
+  // Toggle between light and dark themes
+  const toggleTheme = () => {
+    setTheme((prevTheme) => (prevTheme === 'dark' ? 'light' : 'dark'));
+  };
 
   return (
     <AppContext.Provider
@@ -100,6 +70,7 @@ export const AppProvider = ({ children }) => {
   );
 };
 
+// Custom hook for accessing the global context
 export const useGlobalContext = () => {
   return useContext(AppContext);
 };
